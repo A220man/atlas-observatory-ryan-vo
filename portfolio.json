@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "atlas-observatory-ryan-vo",
+  "owner": "A220man",
+  "email": "ryandtvo@gmail.com",
+  "domain": "AI/ML developer tools",
+  "summary": "Work in progress: atlas-observatory-ryan-vo",
+  "workflows": [
+    "Create and evaluate multi-agent task plans using DAG critical-path horizon analysis and selective simulative routing",
+    "Compare hierarchical, mesh, ring, and star swarm topologies for communication overhead, role balance, and parallel efficiency",
+    "Run reproducible benchmark evaluations comparing selective simulative routing against flat Tier-3 dispatch across labeled agent workloads"
+  ],
+  "auth": "oidc-keycloak-saml-broker",
+  "llm_providers": [
+    "openai-compatible",
+    "anthropic",
+    "gemini",
+    "ollama"
+  ],
+  "status": "work-in-progress"
+}

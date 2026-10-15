@@ -1,0 +1,1 @@
+"""Atlas Observatory backend package."""

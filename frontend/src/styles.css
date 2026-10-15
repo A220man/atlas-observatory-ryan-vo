@@ -1,0 +1,214 @@
+:root {
+  --bg-primary: #0b1020;
+  --bg-panel: #131b31;
+  --bg-card: #1a2542;
+  --border-color: #2b3a63;
+  --text-main: #eef2ff;
+  --text-muted: #9fb0d8;
+  --accent-blue: #4f8cff;
+  --accent-teal: #2dd4bf;
+  --accent-amber: #fbbf24;
+  --accent-red: #f87171;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text-main);
+  background-color: var(--bg-primary);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+}
+
+.app-shell {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1.5rem;
+}
+
+.app-header h1 {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.65rem;
+}
+
+.app-header p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+}
+
+.badge-simulative {
+  background: rgba(79, 140, 255, 0.16);
+  color: #93c5fd;
+  border-color: #3b82f6;
+}
+
+.badge-reactive {
+  background: rgba(45, 212, 191, 0.16);
+  color: #5eead4;
+  border-color: #14b8a6;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.metric-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.metric-card .metric-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metric-card .metric-value {
+  font-size: 1.55rem;
+  font-weight: 700;
+  margin-top: 0.35rem;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 980px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.panel h2, .panel h3 {
+  margin-top: 0;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+input, select, textarea {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+button {
+  background: var(--accent-blue);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+button.danger {
+  background: rgba(248, 113, 113, 0.2);
+  border: 1px solid var(--accent-red);
+  color: #fecaca;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.data-table th, .data-table td {
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.data-table tr.selected-row {
+  background: rgba(79, 140, 255, 0.14);
+}
+
+.warning-banner {
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid var(--accent-amber);
+  color: #fde68a;
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.86rem;
+  margin-top: 0.75rem;
+}
+
+.error-banner {
+  background: rgba(248, 113, 113, 0.15);
+  border: 1px solid var(--accent-red);
+  color: #fecaca;
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}

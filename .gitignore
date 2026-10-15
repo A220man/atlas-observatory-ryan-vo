@@ -1,0 +1,33 @@
+# Python & virtual environments
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+.coverage
+*.egg-info/
+
+# Node & frontend build
+node_modules/
+dist/
+build/
+.vite/
+
+# Databases & local state
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Agent / IDE local metadata
+.antigravitycli/
+.omp/

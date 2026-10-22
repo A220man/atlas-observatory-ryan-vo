@@ -10,6 +10,7 @@ import {
 import { SwarmPlanForm } from "./components/SwarmPlanForm";
 import { SwarmPlanDetail } from "./components/SwarmPlanDetail";
 import { BenchmarkPanel } from "./components/BenchmarkPanel";
+import { WitnessVerifierPanel } from "./components/WitnessVerifierPanel";
 
 interface AppProps {
   client?: ApiClient;
@@ -277,6 +278,8 @@ export const App: React.FC<AppProps> = ({ client = defaultApiClient }) => {
         onRunBenchmark={handleRunBenchmark}
         running={runningBenchmark}
       />
+
+      <WitnessVerifierPanel client={client} />
     </div>
   );
 };

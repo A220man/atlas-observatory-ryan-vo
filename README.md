@@ -28,7 +28,9 @@ flowchart LR
 
 ---
 
-## Implemented Features (`simulative-swarm-planner`)
+## Implemented Features (`simulative-swarm-planner`, `witness-manifest-verifier`)
+
+### Swarm Topology Analyzer & Selective Simulative Planning Router
 
 1. **DAG Critical-Path & Horizon Analyzer (`backend/app/services/planner_engine.py`)**:
    - Validates subtask dependency graphs using Kahn's topological sort, rejecting duplicate node IDs, unknown dependencies, self-dependencies, and cycles with `HTTP 422`.
@@ -43,10 +45,25 @@ flowchart LR
    - Persists evaluated swarm plans, benchmark runs, and mutation audit logs in SQLite.
    - Supports filtering by topology, routing mode, and text search, plus portable JSON bundle export.
 
+### Release Artifact & Witness Manifest Integrity Verifier (`witness-manifest-verifier`)
+
+5. **Platform Manifest Verification (`backend/app/services/witness_verifier.py`)**:
+   - Loads and parses platform build manifests (`macos`, `linux`, `windows`) from `verification/{platform}/manifest.md.json`.
+   - Computes SHA-256 digests of artifacts in `dist/` and compares against manifest entries.
+   - Validates Ed25519 witness stamps using the ruflo scheme: `sha256(sha256(manifest_content) + session_commit)`.
+6. **Three-State Verification Classification**:
+   - `verified_clean`: All manifest entries present and SHA-256 digests match; witness stamp valid.
+   - `drift_detected`: One or more artifacts have mismatched digests, or mixed verified/missing entries, or invalid witness stamp.
+   - `unverifiable_missing_build`: All manifest entries missing (source-only checkout); explicitly fails instead of soft-passing with exit code 0.
+7. **REST API & React Workbench (`backend/app/api/routes.py`, `frontend/src/components/WitnessVerifierPanel.tsx`)**:
+   - `POST /api/v1/witness/verify` — run full multi-platform verification with configurable manifest directory.
+   - `POST /api/v1/witness/verify-stamp` — verify a single manifest's witness stamp against a session commit.
+   - `GET /api/v1/witness/states` — list supported verification states.
+   - Interactive UI panel showing per-platform status, artifact-level detail tables, and witness stamp validation.
+
 ## Planned Roadmap Milestones
 
 See [`PLAN.md`](PLAN.md) and [`feature-plan.json`](feature-plan.json) for full acceptance criteria:
-- `witness-manifest-verifier` (`planned`): Platform build manifest (`macos`, `linux`, `windows`) SHA-256 and Ed25519 witness verification that fails explicitly when `dist/` artifacts are absent.
 - `goap-action-planner` (`planned`): Deterministic A* Goal-Oriented Action Planning over world-state preconditions and effects.
 - `quantized-memory-benchmark` (`planned`): Recall vs memory footprint evaluation for `float32`, `int8`, and 1-bit `RaBitQ` vector quantization.
 - `oidc-keycloak-rbac` (`planned`): OIDC Authorization Code + PKCE authentication, Keycloak SAML identity brokering, and role-based access control.
@@ -143,7 +160,9 @@ docker compose up --build
 | `GET` | `/api/v1/benchmarks/latest` | Retrieve the latest 8-workload benchmark evaluation run |
 | `POST` | `/api/v1/benchmarks/run` | Execute and persist a benchmark run with configurable `horizon_threshold` and `mcp_call_threshold` |
 | `GET` | `/api/v1/audit-logs` | List recent transactional audit log entries |
-
+| `POST` | `/api/v1/witness/verify` | Verify platform build manifests (macos, linux, windows) against dist/ artifacts and witness stamps |
+| `POST` | `/api/v1/witness/verify-stamp` | Verify a single manifest's Ed25519 witness stamp against a session commit |
+| `GET` | `/api/v1/witness/states` | List supported verification states (verified_clean, drift_detected, unverifiable_missing_build) |
 ---
 
 ## Configuration & Roadmap Provider Table

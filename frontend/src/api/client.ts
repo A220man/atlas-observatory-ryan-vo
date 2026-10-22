@@ -129,6 +129,57 @@ export interface BenchmarkRunRecord {
   created_at: string;
 }
 
+export type VerificationState = "verified_clean" | "drift_detected" | "unverifiable_missing_build";
+
+export interface ArtifactVerificationResult {
+  artifact_path: string;
+  expected_sha256: string;
+  actual_sha256: string | null;
+  exists: boolean;
+  match: boolean | null;
+}
+
+export interface PlatformVerificationResult {
+  platform: "macos" | "linux" | "windows";
+  state: VerificationState;
+  entries_total: number;
+  entries_verified: number;
+  entries_missing: number;
+  entries_mismatch: number;
+  results: ArtifactVerificationResult[];
+  witness_stamp_valid: boolean | null;
+  witness_stamp_detail: string | null;
+}
+
+export interface WitnessVerificationRequest {
+  manifest_dir: string;
+  require_dist_artifacts: boolean;
+}
+
+export interface WitnessVerificationResponse {
+  overall_state: VerificationState;
+  platforms: PlatformVerificationResult[];
+  summary: string;
+}
+
+export interface WitnessStampVerificationRequest {
+  manifest_path: string;
+  session_commit: string;
+}
+
+export interface WitnessStampVerificationResponse {
+  manifest_path: string;
+  witness_stamp: string;
+  computed_stamp: string;
+  valid: boolean;
+  session_commit: string;
+  detail: string;
+}
+
+export interface VerificationStatesResponse {
+  states: VerificationState[];
+}
+
 export interface SwarmPlanFilterParams {
   topology?: string;
   routing_mode?: string;
@@ -217,6 +268,36 @@ export class ApiClient {
         mcp_call_threshold: mcpCallThreshold,
       }),
     });
+  }
+
+  async verifyWitnessManifests(
+    manifestDir = "verification",
+    requireDistArtifacts = true
+  ): Promise<WitnessVerificationResponse> {
+    return this.request<WitnessVerificationResponse>("/api/v1/witness/verify", {
+      method: "POST",
+      body: JSON.stringify({
+        manifest_dir: manifestDir,
+        require_dist_artifacts: requireDistArtifacts,
+      }),
+    });
+  }
+
+  async verifyWitnessStamp(
+    manifestPath: string,
+    sessionCommit: string
+  ): Promise<WitnessStampVerificationResponse> {
+    return this.request<WitnessStampVerificationResponse>("/api/v1/witness/verify-stamp", {
+      method: "POST",
+      body: JSON.stringify({
+        manifest_path: manifestPath,
+        session_commit: sessionCommit,
+      }),
+    });
+  }
+
+  async getVerificationStates(): Promise<VerificationStatesResponse> {
+    return this.request<VerificationStatesResponse>("/api/v1/witness/states");
   }
 }
 

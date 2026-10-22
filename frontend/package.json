@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "description": "Atlas Observatory React + TypeScript workbench for swarm topology and selective simulative planning evaluation.",
-  "author": "Ryan Vo <ryandtvo@gmail.com>",
+  "author": {
+    "name": "Ryan Vo",
+    "email": "ryandtvo@gmail.com",
+    "url": "https://github.com/A220man"
+  },
   "license": "MIT",
   "type": "module",
   "scripts": {

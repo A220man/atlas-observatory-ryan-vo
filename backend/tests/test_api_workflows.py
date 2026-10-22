@@ -160,3 +160,37 @@ def test_benchmark_run_and_audit_log_recording() -> None:
     logs = logs_resp.json()
     assert len(logs) >= 4
     assert logs[0]["action"] == "run_benchmark_suite"
+
+
+def test_witness_verification_states_endpoint() -> None:
+    client = _make_client()
+    resp = client.get("/api/v1/witness/states")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "states" in data
+    assert set(data["states"]) == {"verified_clean", "drift_detected", "unverifiable_missing_build"}
+
+
+def test_witness_verify_endpoint_no_manifests() -> None:
+    client = _make_client()
+    resp = client.post(
+        "/api/v1/witness/verify",
+        json={"manifest_dir": "verification", "require_dist_artifacts": True},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["overall_state"] == "unverifiable_missing_build"
+    assert data["platforms"] == []
+    assert "No platform manifests found" in data["summary"]
+
+
+def test_witness_verify_stamp_endpoint_missing_manifest() -> None:
+    client = _make_client()
+    resp = client.post(
+        "/api/v1/witness/verify-stamp",
+        json={"manifest_path": "nonexistent.json", "session_commit": "abc123"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["valid"] is False
+    assert "Manifest file not found" in data["detail"]

@@ -10,8 +10,19 @@ from app.models.swarm import (
     SwarmPlanListResponse,
     SwarmPlanRecord,
 )
+from app.models.witness import (
+    VerificationState,
+    WitnessStampVerificationRequest,
+    WitnessStampVerificationResponse,
+    WitnessVerificationRequest,
+    WitnessVerificationResponse,
+)
 from app.services.planner_engine import PlannerValidationError
 from app.services.swarm_repository import SwarmRepository
+from app.services.witness_verifier import (
+    run_witness_verification,
+    verify_witness_stamp_endpoint,
+)
 
 router = APIRouter(prefix="/api/v1")
 
@@ -136,3 +147,24 @@ def list_audit_logs(
 ) -> list[AuditLogEntry]:
     repo = _get_repo(request)
     return repo.list_audit_logs(limit=limit)
+
+
+@router.post("/witness/verify", response_model=WitnessVerificationResponse)
+def verify_witness_manifests(
+    payload: WitnessVerificationRequest,
+    request: Request,
+) -> WitnessVerificationResponse:
+    return run_witness_verification(payload)
+
+
+@router.post("/witness/verify-stamp", response_model=WitnessStampVerificationResponse)
+def verify_witness_stamp(
+    payload: WitnessStampVerificationRequest,
+    request: Request,
+) -> WitnessStampVerificationResponse:
+    return verify_witness_stamp_endpoint(payload)
+
+
+@router.get("/witness/states")
+def list_verification_states(request: Request) -> dict[str, list[str]]:
+    return {"states": [s.value for s in VerificationState]}

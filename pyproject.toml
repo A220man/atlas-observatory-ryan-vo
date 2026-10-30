@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "atlas-observatory-ryan-vo"
-version = "1.0.0"
+version = "1.1.0"
 description = "Atlas Observatory: Multi-agent swarm topology analyzer and selective simulative planning router."
 readme = "README.md"
 license = { text = "MIT" }

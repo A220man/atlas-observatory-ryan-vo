@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response, status
 
+from app.models.goap import (
+    GOAPPlanCreateRequest,
+    GOAPPlanListResponse,
+    GOAPPlanRecord,
+    GOAPPlanRequest,
+    GOAPPlanResponse,
+)
 from app.models.swarm import (
     AuditLogEntry,
     BenchmarkRunRecord,
@@ -17,6 +24,8 @@ from app.models.witness import (
     WitnessVerificationRequest,
     WitnessVerificationResponse,
 )
+from app.services.goap_planner import synthesize_goap_plan, validate_goap_request
+from app.services.goap_repository import GOAPRepository
 from app.services.planner_engine import PlannerValidationError
 from app.services.swarm_repository import SwarmRepository
 from app.services.witness_verifier import (
@@ -25,6 +34,11 @@ from app.services.witness_verifier import (
 )
 
 router = APIRouter(prefix="/api/v1")
+
+
+def _get_goap_repo(request: Request) -> GOAPRepository:
+    repo: GOAPRepository = request.app.state.goap_repo
+    return repo
 
 
 def _get_repo(request: Request) -> SwarmRepository:
@@ -168,3 +182,68 @@ def verify_witness_stamp(
 @router.get("/witness/states")
 def list_verification_states(request: Request) -> dict[str, list[str]]:
     return {"states": [s.value for s in VerificationState]}
+@router.post("/goap/plans", response_model=GOAPPlanRecord, status_code=status.HTTP_201_CREATED)
+def create_goap_plan(
+    payload: GOAPPlanCreateRequest,
+    request: Request,
+) -> GOAPPlanRecord:
+    """Create and persist a GOAP plan using A* search."""
+    goap_repo = _get_goap_repo(request)
+
+    # Validate the request
+    warnings = validate_goap_request(payload)
+    if warnings:
+        # Log warnings but proceed
+        pass
+
+    # Synthesize the plan
+    response = synthesize_goap_plan(payload)
+
+    # Persist the plan
+    record = goap_repo.create_plan(payload.name, payload, response, actor="operator")
+
+    return record
+
+
+@router.get("/goap/plans", response_model=GOAPPlanListResponse)
+def list_goap_plans(
+    request: Request,
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    success: bool | None = Query(default=None),
+) -> GOAPPlanListResponse:
+    """List GOAP plans with filtering and pagination."""
+    goap_repo = _get_goap_repo(request)
+    return goap_repo.list_plans(limit=limit, offset=offset, success_filter=success)
+
+
+@router.get("/goap/plans/{plan_id}", response_model=GOAPPlanRecord)
+def get_goap_plan(plan_id: str, request: Request) -> GOAPPlanRecord:
+    """Get a GOAP plan by ID."""
+    goap_repo = _get_goap_repo(request)
+    record = goap_repo.get_plan(plan_id)
+    if not record:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"GOAP plan '{plan_id}' not found")
+    return record
+
+
+@router.delete("/goap/plans/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_goap_plan(plan_id: str, request: Request) -> Response:
+    """Delete a GOAP plan by ID."""
+    goap_repo = _get_goap_repo(request)
+    deleted = goap_repo.delete_plan(plan_id, actor="operator")
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"GOAP plan '{plan_id}' not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/goap/plans/validate", response_model=GOAPPlanResponse)
+def validate_goap_plan(
+    payload: GOAPPlanRequest,
+    request: Request,
+) -> GOAPPlanResponse:
+    """Validate a GOAP request and synthesize plan without persistence."""
+    warnings = validate_goap_request(payload)
+    response = synthesize_goap_plan(payload)
+    # Could add warnings to response if we extend the model
+    return response

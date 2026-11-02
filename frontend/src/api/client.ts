@@ -10,6 +10,81 @@ export type SwarmTopology = "hierarchical" | "mesh" | "ring" | "star";
 
 export type RoutingMode = "simulative_forward_pass" | "reactive_direct";
 
+export interface WorldState {
+  [key: string]: boolean | number | string;
+}
+
+export interface GOAPAction {
+  id: string;
+  name: string;
+  cost: number;
+  preconditions: WorldState;
+  effects: WorldState;
+}
+
+export interface GOAPGoal {
+  id: string;
+  name: string;
+  target_state: WorldState;
+  priority: number;
+}
+
+export interface GOAPPlanRequest {
+  initial_state: WorldState;
+  actions: GOAPAction[];
+  goals: GOAPGoal[];
+  max_search_depth?: number;
+  max_iterations?: number;
+}
+
+export interface GOAPPlanStep {
+  action_id: string;
+  action_name: string;
+  cost: number;
+  resulting_state: WorldState;
+}
+
+export interface GOAPPlanResponse {
+  success: boolean;
+  plan: GOAPPlanStep[];
+  total_cost: number;
+  final_state: WorldState;
+  nodes_expanded: number;
+  search_time_ms: number;
+  error_message: string | null;
+}
+
+export interface GOAPPlanCreateRequest {
+  name: string;
+  initial_state: WorldState;
+  actions: GOAPAction[];
+  goals: GOAPGoal[];
+  max_search_depth?: number;
+  max_iterations?: number;
+}
+
+export interface GOAPPlanRecord {
+  id: string;
+  name: string;
+  initial_state: WorldState;
+  actions: GOAPAction[];
+  goals: GOAPGoal[];
+  plan: GOAPPlanStep[];
+  total_cost: number;
+  final_state: WorldState;
+  nodes_expanded: number;
+  search_time_ms: number;
+  success: boolean;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GOAPPlanListResponse {
+  items: GOAPPlanRecord[];
+  total: number;
+}
+
 export interface SubtaskInput {
   id: string;
   title: string;
@@ -298,6 +373,42 @@ export class ApiClient {
 
   async getVerificationStates(): Promise<VerificationStatesResponse> {
     return this.request<VerificationStatesResponse>("/api/v1/witness/states");
+  }
+  async createGoapPlan(payload: GOAPPlanCreateRequest): Promise<GOAPPlanRecord> {
+    return this.request<GOAPPlanRecord>("/api/v1/goap/plans", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async listGoapPlans(
+    limit = 50,
+    offset = 0,
+    success?: boolean
+  ): Promise<GOAPPlanListResponse> {
+    const query = new URLSearchParams();
+    query.set("limit", String(limit));
+    query.set("offset", String(offset));
+    if (success !== undefined) query.set("success", String(success));
+    const qs = query.toString();
+    return this.request<GOAPPlanListResponse>(`/api/v1/goap/plans${qs ? `?${qs}` : ""}`);
+  }
+
+  async getGoapPlan(planId: string): Promise<GOAPPlanRecord> {
+    return this.request<GOAPPlanRecord>(`/api/v1/goap/plans/${encodeURIComponent(planId)}`);
+  }
+
+  async deleteGoapPlan(planId: string): Promise<void> {
+    await this.request<void>(`/api/v1/goap/plans/${encodeURIComponent(planId)}`, {
+      method: "DELETE",
+    });
+  }
+
+  async validateGoapPlan(payload: GOAPPlanRequest): Promise<GOAPPlanResponse> {
+    return this.request<GOAPPlanResponse>("/api/v1/goap/plans/validate", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   }
 }
 

@@ -37,11 +37,15 @@ Tests: `backend/tests/test_witness_verifier.py`, `backend/tests/test_api_workflo
 
 ### goap-action-planner — Goal-Oriented Action Planning (GOAP) A* Search Engine
 
-Status: planned
+Status: done
 
 Acceptance:
 - Synthesize minimum-cost executable agent action sequences from world-state preconditions and effects using deterministic A* search
 - Persist and visualize synthesized GOAP action trees and state transitions
+
+Implementation: `backend/app/models/goap.py`, `backend/app/services/goap_planner.py`, `backend/app/services/goap_repository.py`, `backend/app/api/routes.py`, `backend/app/main.py`, `frontend/src/api/client.ts`, `frontend/src/components/GoapPlannerPanel.tsx`, `frontend/src/App.tsx`
+
+Tests: `backend/tests/test_goap_planner.py`
 
 ### quantized-memory-benchmark — Quantized Vector Memory & Temporal Staleness Evaluator
 

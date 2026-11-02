@@ -59,13 +59,24 @@
     {
       "id": "goap-action-planner",
       "title": "Goal-Oriented Action Planning (GOAP) A* Search Engine",
-      "status": "planned",
+      "status": "done",
       "acceptance": [
         "Synthesize minimum-cost executable agent action sequences from world-state preconditions and effects using deterministic A* search",
         "Persist and visualize synthesized GOAP action trees and state transitions"
       ],
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        "backend/app/models/goap.py",
+        "backend/app/services/goap_planner.py",
+        "backend/app/services/goap_repository.py",
+        "backend/app/api/routes.py",
+        "backend/app/main.py",
+        "frontend/src/api/client.ts",
+        "frontend/src/components/GoapPlannerPanel.tsx",
+        "frontend/src/App.tsx"
+      ],
+      "tests": [
+        "backend/tests/test_goap_planner.py"
+      ]
     },
     {
       "id": "quantized-memory-benchmark",

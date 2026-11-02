@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router
 from app.core.config import get_settings
 from app.core.database import DatabaseManager
+from app.services.goap_repository import GOAPRepository
 from app.services.swarm_repository import SwarmRepository
 
 
@@ -33,12 +34,14 @@ def create_app(db_path: str | None = None, seed: bool = True) -> FastAPI:
 
     db_manager = DatabaseManager(settings.db_path)
     repo = SwarmRepository(db=db_manager, shadow_pass_tokens=settings.shadow_pass_tokens)
+    goap_repo = GOAPRepository(db=db_manager)
     if seed:
         repo.ensure_seed_data()
 
     application.state.settings = settings
     application.state.db = db_manager
     application.state.repo = repo
+    application.state.goap_repo = goap_repo
 
     application.include_router(router)
     return application

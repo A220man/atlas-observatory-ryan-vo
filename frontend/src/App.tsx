@@ -7,6 +7,7 @@ import {
   SwarmPlanRecord,
   defaultApiClient,
 } from "./api/client";
+import { GoapPlannerPanel } from "./components/GoapPlannerPanel";
 import { SwarmPlanForm } from "./components/SwarmPlanForm";
 import { SwarmPlanDetail } from "./components/SwarmPlanDetail";
 import { BenchmarkPanel } from "./components/BenchmarkPanel";
@@ -30,7 +31,7 @@ export const App: React.FC<AppProps> = ({ client = defaultApiClient }) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [runningBenchmark, setRunningBenchmark] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"swarm" | "goap" | "benchmark" | "witness">("swarm");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -164,113 +165,179 @@ export const App: React.FC<AppProps> = ({ client = defaultApiClient }) => {
         </section>
       )}
 
-      <div className="workspace-grid">
-        <div>
-          <SwarmPlanForm onSubmit={handleCreatePlan} submitting={submitting} />
+      <div className="tab-navigation" role="tablist" aria-label="Feature panels">
+        <button
+          role="tab"
+          aria-selected={activeTab === "swarm"}
+          onClick={() => setActiveTab("swarm")}
+          className={activeTab === "swarm" ? "active" : ""}
+        >
+          Swarm Planner
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === "goap"}
+          onClick={() => setActiveTab("goap")}
+          className={activeTab === "goap" ? "active" : ""}
+        >
+          GOAP Planner
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === "benchmark"}
+          onClick={() => setActiveTab("benchmark")}
+          className={activeTab === "benchmark" ? "active" : ""}
+        >
+          Benchmark
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === "witness"}
+          onClick={() => setActiveTab("witness")}
+          className={activeTab === "witness" ? "active" : ""}
+        >
+          Witness Verifier
+        </button>
+      </div>
 
-          <section className="panel" aria-label="Saved Swarm Plans">
-            <h2 style={{ fontSize: "1.15rem", marginBottom: "0.75rem" }}>
-              Evaluated Swarm Plans
-            </h2>
-            <div className="form-row">
-              <label>
-                Filter Topology
-                <select
-                  aria-label="Filter Topology"
-                  value={topologyFilter}
-                  onChange={(e) => setTopologyFilter(e.target.value)}
-                >
-                  <option value="">All topologies</option>
-                  <option value="hierarchical">hierarchical</option>
-                  <option value="mesh">mesh</option>
-                  <option value="ring">ring</option>
-                  <option value="star">star</option>
-                </select>
-              </label>
-              <label>
-                Filter Routing Mode
-                <select
-                  aria-label="Filter Routing Mode"
-                  value={routingFilter}
-                  onChange={(e) => setRoutingFilter(e.target.value)}
-                >
-                  <option value="">All modes</option>
-                  <option value="simulative_forward_pass">simulative_forward_pass</option>
-                  <option value="reactive_direct">reactive_direct</option>
-                </select>
-              </label>
-              <label>
-                Search Plans
-                <input
-                  aria-label="Search Plans"
-                  placeholder="Filter by name or objective..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </label>
+      <div className="workspace-grid">
+        {activeTab === "swarm" && (
+          <div>
+            <div>
+              <SwarmPlanForm onSubmit={handleCreatePlan} submitting={submitting} />
+
+              <section className="panel" aria-label="Saved Swarm Plans">
+                <h2 style={{ fontSize: "1.15rem", marginBottom: "0.75rem" }}>
+                  Evaluated Swarm Plans
+                </h2>
+                <div className="form-row">
+                  <label>
+                    Filter Topology
+                    <select
+                      aria-label="Filter Topology"
+                      value={topologyFilter}
+                      onChange={(e) => setTopologyFilter(e.target.value)}
+                    >
+                      <option value="">All topologies</option>
+                      <option value="hierarchical">hierarchical</option>
+                      <option value="mesh">mesh</option>
+                      <option value="ring">ring</option>
+                      <option value="star">star</option>
+                    </select>
+                  </label>
+                  <label>
+                    Filter Routing Mode
+                    <select
+                      aria-label="Filter Routing Mode"
+                      value={routingFilter}
+                      onChange={(e) => setRoutingFilter(e.target.value)}
+                    >
+                      <option value="">All modes</option>
+                      <option value="simulative_forward_pass">simulative_forward_pass</option>
+                      <option value="reactive_direct">reactive_direct</option>
+                    </select>
+                  </label>
+                  <label>
+                    Search Plans
+                    <input
+                      aria-label="Search Plans"
+                      placeholder="Filter by name or objective..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </label>
+                </div>
+
+                {loading ? (
+                  <p>Loading swarm plans...</p>
+                ) : plans.length === 0 ? (
+                  <p style={{ color: "var(--text-muted)" }}>
+                    No swarm plans match the selected filters.
+                  </p>
+                ) : (
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Plan</th>
+                        <th>Topology</th>
+                        <th>Routing Mode</th>
+                        <th>Horizon</th>
+                        <th>Reduction</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {plans.map((p) => (
+                        <tr
+                          key={p.id}
+                          className={selectedPlan?.id === p.id ? "selected-row" : ""}
+                          onClick={() => {
+                            setSelectedPlan(p);
+                            setExportedJson(null);
+                          }}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <td>
+                            <strong>{p.name}</strong>
+                          </td>
+                          <td>{p.topology}</td>
+                          <td>
+                            <span
+                              className={`badge ${
+                                p.routing.mode === "simulative_forward_pass"
+                                  ? "badge-simulative"
+                                  : "badge-reactive"
+                              }`}
+                            >
+                              {p.routing.mode}
+                            </span>
+                          </td>
+                          <td>{p.routing.critical_path_steps} steps</td>
+                          <td>{p.routing.token_reduction_pct}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </section>
             </div>
 
-            {loading ? (
-              <p>Loading swarm plans...</p>
-            ) : plans.length === 0 ? (
-              <p style={{ color: "var(--text-muted)" }}>
-                No swarm plans match the selected filters.
-              </p>
-            ) : (
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Plan</th>
-                    <th>Topology</th>
-                    <th>Routing Mode</th>
-                    <th>Horizon</th>
-                    <th>Reduction</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {plans.map((p) => (
-                    <tr
-                      key={p.id}
-                      className={selectedPlan?.id === p.id ? "selected-row" : ""}
-                      onClick={() => {
-                        setSelectedPlan(p);
-                        setExportedJson(null);
-                      }}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <td>
-                        <strong>{p.name}</strong>
-                      </td>
-                      <td>{p.topology}</td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            p.routing.mode === "simulative_forward_pass"
-                              ? "badge-simulative"
-                              : "badge-reactive"
-                          }`}
-                        >
-                          {p.routing.mode}
-                        </span>
-                      </td>
-                      <td>{p.routing.critical_path_steps} steps</td>
-                      <td>{p.routing.token_reduction_pct}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </section>
-        </div>
+            <div>
+              <SwarmPlanDetail
+                plan={selectedPlan}
+                exportedJson={exportedJson}
+                onExport={handleExportPlan}
+                onDelete={handleDeletePlan}
+              />
+            </div>
+          </div>
+        )}
 
-        <div>
-          <SwarmPlanDetail
-            plan={selectedPlan}
-            exportedJson={exportedJson}
-            onExport={handleExportPlan}
-            onDelete={handleDeletePlan}
-          />
-        </div>
+        {activeTab === "goap" && (
+          <div>
+            <GoapPlannerPanel
+              client={client}
+              onPlanCreated={() => {
+                // Optionally refresh or notify
+              }}
+            />
+          </div>
+        )}
+
+        {activeTab === "benchmark" && (
+          <div>
+            <BenchmarkPanel
+              benchmark={benchmark}
+              onRunBenchmark={handleRunBenchmark}
+              running={runningBenchmark}
+            />
+          </div>
+        )}
+
+        {activeTab === "witness" && (
+          <div>
+            <WitnessVerifierPanel client={client} />
+          </div>
+        )}
       </div>
 
       <BenchmarkPanel

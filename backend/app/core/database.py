@@ -52,7 +52,28 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     detail TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
-"""
+
+CREATE TABLE IF NOT EXISTS goap_plans (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    initial_state_json TEXT NOT NULL,
+    actions_json TEXT NOT NULL,
+    goals_json TEXT NOT NULL,
+    plan_json TEXT NOT NULL,
+    total_cost REAL NOT NULL,
+    final_state_json TEXT NOT NULL,
+    nodes_expanded INTEGER NOT NULL,
+    search_time_ms REAL NOT NULL,
+    success INTEGER NOT NULL,
+    error_message TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_goap_plans_created_at ON goap_plans(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_goap_plans_success ON goap_plans(success);
+
+ """
 
 
 class DatabaseManager:

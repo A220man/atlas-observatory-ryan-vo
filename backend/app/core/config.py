@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,6 +19,23 @@ def _read_version() -> str:
     return "1.0.0"
 
 
+def _read_current_feature() -> str:
+    candidates = [
+        Path(__file__).resolve().parents[3] / "feature-plan.json",
+        Path(__file__).resolve().parents[2] / "feature-plan.json",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            try:
+                data = json.loads(candidate.read_text(encoding="utf-8"))
+                feature = data.get("current_feature", "").strip()
+                if feature:
+                    return feature
+            except (json.JSONDecodeError, OSError):
+                pass
+    return "simulative-swarm-planner"
+
+
 @dataclass(frozen=True)
 class Settings:
     app_name: str
@@ -27,6 +45,7 @@ class Settings:
     default_horizon_threshold: int
     default_mcp_call_threshold: int
     shadow_pass_tokens: int
+    current_feature: str
 
 
 def get_settings() -> Settings:
@@ -38,4 +57,6 @@ def get_settings() -> Settings:
         default_horizon_threshold=int(os.getenv("ATLAS_HORIZON_THRESHOLD", "5")),
         default_mcp_call_threshold=int(os.getenv("ATLAS_MCP_CALL_THRESHOLD", "2")),
         shadow_pass_tokens=int(os.getenv("ATLAS_SHADOW_PASS_TOKENS", "256")),
+        current_feature=_read_current_feature(),
     )
+

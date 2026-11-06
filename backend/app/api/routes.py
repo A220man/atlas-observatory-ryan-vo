@@ -54,7 +54,7 @@ def get_health(request: Request) -> dict[str, object]:
         "service": settings.app_name,
         "version": settings.version,
         "environment": settings.environment,
-        "active_feature": "simulative-swarm-planner",
+        "active_feature": settings.current_feature,
     }
 
 

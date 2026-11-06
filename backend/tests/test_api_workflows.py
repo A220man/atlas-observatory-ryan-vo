@@ -16,8 +16,8 @@ def test_health_endpoint_returns_version_and_active_feature() -> None:
     assert resp.status_code == 200
     body = resp.json()
     assert body["status"] == "ok"
-    assert body["version"] == "1.1.0"
-    assert body["active_feature"] == "simulative-swarm-planner"
+    assert body["version"] == "1.3.0"
+    assert body["active_feature"] == "goap-action-planner"
 
 
 def test_seeded_swarm_plans_list_and_filtering() -> None:

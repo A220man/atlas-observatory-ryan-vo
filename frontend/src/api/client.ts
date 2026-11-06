@@ -255,6 +255,14 @@ export interface VerificationStatesResponse {
   states: VerificationState[];
 }
 
+export interface HealthResponse {
+  status: string;
+  service: string;
+  version: string;
+  environment: string;
+  active_feature: string;
+}
+
 export interface SwarmPlanFilterParams {
   topology?: string;
   routing_mode?: string;
@@ -409,6 +417,10 @@ export class ApiClient {
       method: "POST",
       body: JSON.stringify(payload),
     });
+  }
+
+  async getHealth(): Promise<HealthResponse> {
+    return this.request<HealthResponse>("/api/v1/health");
   }
 }
 

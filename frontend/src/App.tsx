@@ -23,6 +23,7 @@ export const App: React.FC<AppProps> = ({ client = defaultApiClient }) => {
   const [selectedPlan, setSelectedPlan] = useState<SwarmPlanRecord | null>(null);
   const [benchmark, setBenchmark] = useState<BenchmarkRunRecord | null>(null);
   const [exportedJson, setExportedJson] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const [topologyFilter, setTopologyFilter] = useState("");
   const [routingFilter, setRoutingFilter] = useState("");
@@ -32,19 +33,21 @@ export const App: React.FC<AppProps> = ({ client = defaultApiClient }) => {
   const [submitting, setSubmitting] = useState(false);
   const [runningBenchmark, setRunningBenchmark] = useState(false);
   const [activeTab, setActiveTab] = useState<"swarm" | "goap" | "benchmark" | "witness">("swarm");
-
+  const [activeFeature, setActiveFeature] = useState<string>("simulative-swarm-planner");
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [planRes, benchRes] = await Promise.all([
+      const [planRes, benchRes, healthRes] = await Promise.all([
         client.listSwarmPlans({
           topology: topologyFilter || undefined,
           routing_mode: routingFilter || undefined,
           search: searchQuery || undefined,
         }),
         client.getLatestBenchmark(),
+        client.getHealth(),
       ]);
+      setActiveFeature(healthRes.active_feature);
       setPlans(planRes.items);
       setSummary(planRes.summary);
       setBenchmark(benchRes);
@@ -131,7 +134,7 @@ export const App: React.FC<AppProps> = ({ client = defaultApiClient }) => {
             and multi-agent topology evaluator.
           </p>
         </div>
-        <span className="badge">Active Feature: simulative-swarm-planner</span>
+        <span className="badge">Active Feature: {activeFeature}</span>
       </header>
 
       {error && (

@@ -49,11 +49,15 @@ Tests: `backend/tests/test_goap_planner.py`
 
 ### quantized-memory-benchmark — Quantized Vector Memory & Temporal Staleness Evaluator
 
-Status: planned
+Status: in_progress
 
 Acceptance:
 - Compare float32, int8, and 1-bit RaBitQ vector quantization recall and memory footprint across agent memory namespaces
 - Diagnose temporal staleness and interference aging across multi-session memory records
+
+Implementation: `backend/app/services/quantized_memory_benchmark.py`, `backend/app/api/routes.py`, `backend/tests/test_quantized_memory_benchmark.py`
+
+Tests: `backend/tests/test_quantized_memory_benchmark.py`
 
 ### oidc-keycloak-rbac — OIDC PKCE Authentication, Keycloak SAML Broker & Role-Based Access Control
 

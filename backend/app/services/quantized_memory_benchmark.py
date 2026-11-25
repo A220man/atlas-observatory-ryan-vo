@@ -144,3 +144,97 @@ def run_quantization_comparison(
             )
         )
     return results
+
+
+def compare_across_namespace(
+    records: list[MemoryRecord],
+    methods: list[QuantizationMethod] | None = None,
+) -> dict[str, list[QuantizationResult]]:
+    """Compare quantization methods across a namespace of memory records.
+
+    Returns a dict mapping namespace -> list of QuantizationResult per method.
+    This enables memory/recall tradeoff analysis across agent memory namespaces.
+    """
+    from collections import defaultdict
+
+    grouped: dict[str, list[list[float]]] = defaultdict(list)
+    for rec in records:
+        grouped[rec.namespace].append(rec.vector)
+
+    results: dict[str, list[QuantizationResult]] = {}
+    for namespace, vectors in grouped.items():
+        namespace_results: list[QuantizationResult] = []
+        for vector in vectors:
+            vec_results = run_quantization_comparison(vector, methods)
+            namespace_results.extend(vec_results)
+        results[namespace] = namespace_results
+
+    return results
+
+
+def diagnose_temporal_staleness(
+    records: list[MemoryRecord],
+    max_age_seconds: int | None = None,
+) -> dict[str, Any]:
+    """Diagnose temporal staleness across memory records.
+
+    Returns per-namespace staleness statistics including:
+    - oldest_record_age_seconds
+    - avg_record_age_seconds
+    - records_beyond_threshold
+    - interference_score: fraction of record pairs with overlapping namespaces
+      within a sliding age window (indicates potential interference/confusion).
+
+    A higher interference_score suggests more temporal overlap and potential
+    cross-talk between memories in the same namespace.
+    """
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc)
+    if max_age_seconds is None:
+        max_age_seconds = 24 * 3600  # default: 24h
+
+    # Per-namespace stats
+    ns_stats: dict[str, dict[str, Any]] = {}
+    for rec in records:
+        age = (now - rec.timestamp).total_seconds()
+        if rec.namespace not in ns_stats:
+            ns_stats[rec.namespace] = {
+                "ages": [],
+                "oldest": 0.0,
+                "count": 0,
+                "beyond_threshold": 0,
+            }
+        ns = ns_stats[rec.namespace]
+        ns["ages"].append(age)
+        ns["count"] += 1
+        if age > ns["oldest"]:
+            ns["oldest"] = age
+        if age > max_age_seconds:
+            ns["beyond_threshold"] += 1
+
+    # Compute interference score: fraction of pairs within 24h in same namespace
+    # that have overlapping recent activity
+    interference_scores: dict[str, float] = {}
+    for namespace, stats in ns_stats.items():
+        ages = sorted(stats["ages"])
+        n = len(ages)
+        if n < 2:
+            interference_scores[namespace] = 0.0
+            continue
+
+        # Count pairs within max_age_seconds of each other
+        pair_count = 0
+        total_pairs = n * (n - 1) // 2
+        for i in range(n):
+            for j in range(i + 1, n):
+                if abs(ages[i] - ages[j]) <= max_age_seconds:
+                    pair_count += 1
+
+        interference_scores[namespace] = pair_count / total_pairs if total_pairs > 0 else 0.0
+
+    return {
+        "per_namespace": {ns: {"oldest_seconds": s["oldest"], "avg_seconds": sum(s["ages"]) / len(s["ages"]) if s["ages"] else 0, "beyond_threshold": s["beyond_threshold"], "interference_score": interference_scores.get(ns, 0.0)} for ns, s in ns_stats.items()},
+        "max_age_seconds": max_age_seconds,
+        "total_records": sum(s["count"] for s in ns_stats.values()),
+    }

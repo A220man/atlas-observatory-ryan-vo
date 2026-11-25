@@ -15,7 +15,7 @@ class QuantizationMethod(str, Enum):
 
 class MemoryRecord(BaseModel):
     namespace: str = Field(..., min_length=1, max_length=64)
-    vector: list[float] = Field(..., min_items=1)
+    vector: list[float] = Field(..., min_length=1)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -23,7 +23,7 @@ class MemoryRecord(BaseModel):
 class QuantizationResult(BaseModel):
     method: QuantizationMethod
     original_vector: list[float]
-    quantized_data: list[int] | bytes | None = None
+    quantized_data: list[float] | list[int] | bytes | None = None
     reconstruction_error: float = Field(ge=0.0)
 
 
